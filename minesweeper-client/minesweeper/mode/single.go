@@ -14,4 +14,5 @@ func NewSingleMode(level level.GameLevel) *SingleMode {
 }
 
 func (mode *SingleMode) Start() {
+	mode.board.InitializeGame()
 }
