@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"minesweeper-client/minesweeper/level"
 	"minesweeper-client/minesweeper/mode"
+	"minesweeper-client/minesweeper/util"
 	"minesweeper-client/minesweeper/view"
 )
 
@@ -13,11 +14,7 @@ type Minesweeper struct {
 func (minesweeper *Minesweeper) Run() {
 	view.ShowGameStartMessage()
 
-	gameLevel, err := minesweeper.readInputGameLevel()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	gameLevel := util.Must(minesweeper.readInputGameLevel())
 	gameMode := &mode.SingleMode{}
 
 	gameMode.Start(gameLevel)
