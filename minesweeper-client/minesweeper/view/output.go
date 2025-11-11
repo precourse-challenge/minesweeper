@@ -11,3 +11,6 @@ func AskGameLevel() {
 func ShowSelectedGameLevel(level string) {
 	fmt.Printf("선택된 난이도: %s\n", level)
 }
+func ShowErrorMessage(err error) {
+	fmt.Printf("[ERROR] %s\n", err)
+}
