@@ -55,4 +55,5 @@ func Test_특정_셀을_제외한_나머지_셀들을_반환한다(t *testing.T)
 	assert.True(t, contains(subtractedPositions, util.Must(NewCellPosition(0, 0))))
 	assert.True(t, contains(subtractedPositions, util.Must(NewCellPosition(1, 0))))
 	assert.True(t, contains(subtractedPositions, util.Must(NewCellPosition(1, 1))))
+	assert.False(t, contains(subtractedPositions, util.Must(NewCellPosition(0, 1))))
 }
