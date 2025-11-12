@@ -33,3 +33,11 @@ func (c *EmptyCell) GetSnapshot() Snapshot {
 	}
 	return OfUnchecked()
 }
+
+func (c *EmptyCell) ToggleFlag() {
+	c.cellState.ToggleFlag()
+}
+
+func (c *EmptyCell) Open() {
+	c.cellState.Open()
+}

@@ -16,7 +16,7 @@ func NewCellPositions(board [][]cell.Cell) *CellPositions {
 
 	for rowIndex := range board {
 		for colIndex := range board[rowIndex] {
-			position := util.Must(NewCellPosition(rowIndex, colIndex))
+			position := util.FatalIfError(NewCellPosition(rowIndex, colIndex))
 			positions = append(positions, position)
 		}
 	}

@@ -21,12 +21,12 @@ func ShowSelectedGameLevel(level string) {
 }
 
 func ShowBoard(board *board.Board) {
-	showColumnNumbers(board)
+	showColNumbers(board)
 
 	for row := 0; row < board.GetRowSize(); row++ {
 		fmt.Printf("%2d  ", row+1)
 		for col := 0; col < board.GetColSize(); col++ {
-			cellPosition := util.Must(position.NewCellPosition(row, col))
+			cellPosition := util.FatalIfError(position.NewCellPosition(row, col))
 			cellSnapshot := board.GetSnapshot(cellPosition)
 
 			fmt.Printf("%2s ", signOf(cellSnapshot))
@@ -41,8 +41,20 @@ func ShowRemainingFlagCount(board *board.Board) {
 	fmt.Printf("남은 깃발 개수: %d\n\n", remainingFlagCount)
 }
 
-func showColumnNumbers(board *board.Board) {
-	colNumbers := generateColumnNumbers(board.GetColSize())
+func AskCommand() {
+	fmt.Println("명령어를 입력해주세요 (open x y / flag x y / quit)")
+}
+
+func ShowQuitMessage() {
+	fmt.Println("\n프로그램을 종료합니다.")
+}
+
+func ShowErrorMessage(err error) {
+	fmt.Println("\n[ERROR] " + err.Error() + "\n")
+}
+
+func showColNumbers(board *board.Board) {
+	colNumbers := generateColNumbers(board.GetColSize())
 
 	fmt.Print("    ")
 	for _, n := range colNumbers {
@@ -51,7 +63,7 @@ func showColumnNumbers(board *board.Board) {
 	fmt.Println()
 }
 
-func generateColumnNumbers(colSize int) []int {
+func generateColNumbers(colSize int) []int {
 	numbers := make([]int, 0, colSize)
 	for i := 1; i <= colSize; i++ {
 		numbers = append(numbers, i)
