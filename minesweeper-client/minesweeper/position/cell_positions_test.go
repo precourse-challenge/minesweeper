@@ -2,7 +2,6 @@ package position
 
 import (
 	"minesweeper-client/minesweeper/cell"
-	"minesweeper-client/minesweeper/util"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,14 +45,23 @@ func Test_특정_셀을_제외한_나머지_셀들을_반환한다(t *testing.T)
 		{cell.NewEmptyCell(), cell.NewEmptyCell()},
 	}
 	positions := NewCellPositions(board)
-	toSubtract := []*CellPosition{util.Must(NewCellPosition(0, 1))}
+	toSubtract := []*CellPosition{mustCellPosition(t, 0, 1)}
 
 	// when
 	subtractedPositions := positions.Subtract(toSubtract)
 
 	// then
-	assert.True(t, contains(subtractedPositions, util.Must(NewCellPosition(0, 0))))
-	assert.True(t, contains(subtractedPositions, util.Must(NewCellPosition(1, 0))))
-	assert.True(t, contains(subtractedPositions, util.Must(NewCellPosition(1, 1))))
-	assert.False(t, contains(subtractedPositions, util.Must(NewCellPosition(0, 1))))
+	assert.True(t, contains(subtractedPositions, mustCellPosition(t, 0, 0)))
+	assert.True(t, contains(subtractedPositions, mustCellPosition(t, 1, 0)))
+	assert.True(t, contains(subtractedPositions, mustCellPosition(t, 1, 1)))
+	assert.False(t, contains(subtractedPositions, mustCellPosition(t, 0, 1)))
+}
+
+func mustCellPosition(t *testing.T, row, col int) *CellPosition {
+	t.Helper()
+	position, err := NewCellPosition(row, col)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return position
 }
