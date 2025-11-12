@@ -41,9 +41,22 @@ func (board *Board) InitializeGame() {
 	board.initializeNumberCells(numberPositions)
 }
 
+func (board *Board) GetSnapshot(cellPosition *position.CellPosition) cell.Snapshot {
+	boardCell := board.cells[cellPosition.RowIndex()][cellPosition.ColIndex()]
+	return boardCell.GetSnapshot()
+}
+
+func (board *Board) GetColSize() int {
+	return len(board.cells[0])
+}
+
+func (board *Board) GetRowSize() int {
+	return len(board.cells)
+}
+
 func (board *Board) initializeEmptyCells() {
 	for rowIndex, row := range board.cells {
-		for colIndex, _ := range row {
+		for colIndex := range row {
 			board.cells[rowIndex][colIndex] = cell.NewEmptyCell()
 		}
 	}
@@ -102,8 +115,8 @@ func (board *Board) isLandMineCell(cellPosition *position.CellPosition) bool {
 }
 
 func (board *Board) isOutOfBounds(cellPosition *position.CellPosition) bool {
-	rowSize := len(board.cells)
-	colSize := len(board.cells[0])
+	rowSize := board.GetRowSize()
+	colSize := board.GetColSize()
 
 	return cellPosition.RowIndex() < 0 || cellPosition.ColIndex() < 0 ||
 		cellPosition.RowIndex() >= rowSize || cellPosition.ColIndex() >= colSize

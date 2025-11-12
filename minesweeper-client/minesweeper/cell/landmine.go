@@ -23,3 +23,13 @@ func (c *LandMineCell) IsFlagged() bool {
 func (c *LandMineCell) HasAdjacentLandMines() bool {
 	return false
 }
+
+func (c *LandMineCell) GetSnapshot() Snapshot {
+	if c.IsOpened() {
+		return OfLandMine()
+	}
+	if c.IsFlagged() {
+		return OfFlag()
+	}
+	return OfUnchecked()
+}

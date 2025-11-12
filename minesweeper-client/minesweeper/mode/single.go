@@ -3,6 +3,7 @@ package mode
 import (
 	"minesweeper-client/minesweeper/board"
 	"minesweeper-client/minesweeper/level"
+	"minesweeper-client/minesweeper/view"
 )
 
 type SingleMode struct {
@@ -13,6 +14,7 @@ func NewSingleMode(level level.GameLevel) *SingleMode {
 	return &SingleMode{board: board.NewBoard(level)}
 }
 
-func (mode *SingleMode) Start() {
-	mode.board.InitializeGame()
+func (m *SingleMode) Start() {
+	m.board.InitializeGame()
+	view.ShowBoard(m.board)
 }

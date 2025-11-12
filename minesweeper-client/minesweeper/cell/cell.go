@@ -5,4 +5,5 @@ type Cell interface {
 	IsOpened() bool
 	IsFlagged() bool
 	HasAdjacentLandMines() bool
+	GetSnapshot() Snapshot
 }
