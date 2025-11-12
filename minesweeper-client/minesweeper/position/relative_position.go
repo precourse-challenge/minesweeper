@@ -5,7 +5,7 @@ type RelativePosition struct {
 	DeltaCol int
 }
 
-var SurroundedPositions = []RelativePosition{
+var RelativePositions = []RelativePosition{
 	{-1, -1},
 	{-1, 0},
 	{-1, 1},

@@ -157,13 +157,13 @@ func (board *Board) countAdjacentLandMines(cellPosition *position.CellPosition) 
 }
 
 func (board *Board) findSurroundedPositions(cellPosition *position.CellPosition) []*position.CellPosition {
-	var surroundedPositions []*position.CellPosition
+	surroundedPositions := make([]*position.CellPosition, 0, 8)
 
-	for _, surroundedPosition := range position.SurroundedPositions {
-		if cellPosition.CannotMoveBy(surroundedPosition) {
+	for _, relativePosition := range position.RelativePositions {
+		if cellPosition.CannotMoveBy(relativePosition) {
 			continue
 		}
-		movedPosition := util.FatalIfError(cellPosition.MovedBy(surroundedPosition))
+		movedPosition := util.FatalIfError(cellPosition.MovedBy(relativePosition))
 		if board.IsOutOfBounds(movedPosition) {
 			continue
 		}
