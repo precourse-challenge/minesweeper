@@ -27,3 +27,13 @@ func (c *NumberCell) IsFlagged() bool {
 func (c *NumberCell) HasAdjacentLandMines() bool {
 	return true
 }
+
+func (c *NumberCell) GetSnapshot() Snapshot {
+	if c.IsOpened() {
+		return OfNumber(c.adjacentLandMineCount)
+	}
+	if c.IsFlagged() {
+		return OfFlag()
+	}
+	return OfUnchecked()
+}
