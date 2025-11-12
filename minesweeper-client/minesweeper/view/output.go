@@ -28,11 +28,17 @@ func ShowBoard(board *board.Board) {
 		for col := 0; col < board.GetColSize(); col++ {
 			cellPosition := util.Must(position.NewCellPosition(row, col))
 			cellSnapshot := board.GetSnapshot(cellPosition)
+
 			fmt.Printf("%2s ", signOf(cellSnapshot))
 		}
 		fmt.Println()
 	}
 	fmt.Println()
+}
+
+func ShowRemainingFlagCount(board *board.Board) {
+	remainingFlagCount := board.GetRemainingFlags()
+	fmt.Printf("남은 깃발 개수: %d\n\n", remainingFlagCount)
 }
 
 func showColumnNumbers(board *board.Board) {

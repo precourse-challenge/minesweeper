@@ -10,6 +10,7 @@ import (
 type Board struct {
 	cells         [][]cell.Cell
 	landMineCount int
+	flagCount     int
 	gameStatus    GameStatus
 }
 
@@ -39,6 +40,10 @@ func (board *Board) InitializeGame() {
 
 	numberPositions := cellPositions.Subtract(landMinePositions)
 	board.initializeNumberCells(numberPositions)
+}
+
+func (board *Board) GetRemainingFlags() int {
+	return board.landMineCount - board.flagCount
 }
 
 func (board *Board) GetSnapshot(cellPosition *position.CellPosition) cell.Snapshot {

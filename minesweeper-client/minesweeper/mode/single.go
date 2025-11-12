@@ -16,5 +16,7 @@ func NewSingleMode(level level.GameLevel) *SingleMode {
 
 func (m *SingleMode) Start() {
 	m.board.InitializeGame()
+
 	view.ShowBoard(m.board)
+	view.ShowRemainingFlagCount(m.board)
 }
