@@ -14,9 +14,9 @@ func (minesweeper *Minesweeper) Run() {
 	view.ShowGameStartMessage()
 
 	gameLevel := util.Must(readInputGameLevel())
-	gameMode := &mode.SingleMode{}
 
-	gameMode.Start(gameLevel)
+	gameMode := mode.NewSingleMode(gameLevel)
+	gameMode.Start()
 }
 
 func readInputGameLevel() (level.GameLevel, error) {
