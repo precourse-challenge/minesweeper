@@ -26,7 +26,7 @@ func ShowBoard(board *board.Board) {
 	for row := 0; row < board.GetRowSize(); row++ {
 		fmt.Printf("%2d  ", row+1)
 		for col := 0; col < board.GetColSize(); col++ {
-			cellPosition := util.Must(position.NewCellPosition(row, col))
+			cellPosition := util.FatalIfError(position.NewCellPosition(row, col))
 			cellSnapshot := board.GetSnapshot(cellPosition)
 
 			fmt.Printf("%2s ", signOf(cellSnapshot))

@@ -163,7 +163,7 @@ func (board *Board) findSurroundedPositions(cellPosition *position.CellPosition)
 		if cellPosition.CannotMoveBy(surroundedPosition) {
 			continue
 		}
-		movedPosition := util.Must(cellPosition.MovedBy(surroundedPosition))
+		movedPosition := util.FatalIfError(cellPosition.MovedBy(surroundedPosition))
 		if board.IsOutOfBounds(movedPosition) {
 			continue
 		}
