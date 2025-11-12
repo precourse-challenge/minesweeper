@@ -33,3 +33,11 @@ func (c *LandMineCell) GetSnapshot() Snapshot {
 	}
 	return OfUnchecked()
 }
+
+func (c *LandMineCell) ToggleFlag() {
+	c.cellState.ToggleFlag()
+}
+
+func (c *LandMineCell) Open() {
+	c.cellState.Open()
+}

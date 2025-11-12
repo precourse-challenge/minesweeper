@@ -19,3 +19,11 @@ func (c *State) IsOpened() bool {
 func (c *State) IsFlagged() bool {
 	return c.isFlagged
 }
+
+func (c *State) ToggleFlag() {
+	c.isFlagged = !c.isFlagged
+}
+
+func (c *State) Open() {
+	c.isOpened = true
+}
