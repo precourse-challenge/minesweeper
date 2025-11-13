@@ -78,18 +78,13 @@ func (board *Board) Open(cellPosition *position.CellPosition) error {
 		return nil
 	}
 
-	board.openCell(cellPosition)
+	board.openSurroundedCells(cellPosition)
+
+	if board.isGameWon() {
+		board.gameStatus = Win
+	}
+
 	return nil
-}
-
-func (board *Board) openCell(cellPosition *position.CellPosition) {
-	boardCell := board.cells[cellPosition.RowIndex()][cellPosition.ColIndex()]
-	boardCell.Open()
-}
-
-func (board *Board) toggleFlagCell(cellPosition *position.CellPosition) {
-	boardCell := board.cells[cellPosition.RowIndex()][cellPosition.ColIndex()]
-	boardCell.ToggleFlag()
 }
 
 func (board *Board) IsInProgress() bool {
@@ -197,6 +192,37 @@ func (board *Board) findSurroundedPositions(cellPosition *position.CellPosition)
 
 func (board *Board) updateCell(cellPosition *position.CellPosition, cell cell.Cell) {
 	board.cells[cellPosition.RowIndex()][cellPosition.ColIndex()] = cell
+}
+
+func (board *Board) openCell(cellPosition *position.CellPosition) {
+	boardCell := board.cells[cellPosition.RowIndex()][cellPosition.ColIndex()]
+	boardCell.Open()
+}
+
+func (board *Board) toggleFlagCell(cellPosition *position.CellPosition) {
+	boardCell := board.cells[cellPosition.RowIndex()][cellPosition.ColIndex()]
+	boardCell.ToggleFlag()
+}
+
+func (board *Board) isGameWon() bool {
+	openedCellCount := board.countOpenedCells()
+
+	fullSize := board.GetRowSize() * board.GetColSize()
+	noLandMineCount := fullSize - board.landMineCount
+
+	return openedCellCount == noLandMineCount
+}
+
+func (board *Board) countOpenedCells() int {
+	var openedCellCount int
+	for _, rowCells := range board.cells {
+		for _, rowCell := range rowCells {
+			if rowCell.IsOpened() {
+				openedCellCount++
+			}
+		}
+	}
+	return openedCellCount
 }
 
 func (board *Board) isOpenedCell(cellPosition *position.CellPosition) bool {
