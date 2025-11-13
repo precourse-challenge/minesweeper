@@ -156,6 +156,29 @@ func (board *Board) countAdjacentLandMines(cellPosition *position.CellPosition) 
 	return adjacentLandMineCount
 }
 
+func (board *Board) openSurroundedCells(cellPosition *position.CellPosition) {
+	if board.isOpenedCell(cellPosition) {
+		return
+	}
+	if board.isFlaggedCell(cellPosition) {
+		return
+	}
+	if board.isLandMineCell(cellPosition) {
+		return
+	}
+
+	board.openCell(cellPosition)
+
+	if board.hasAdjacentLandMines(cellPosition) {
+		return
+	}
+
+	surroundedPositions := board.findSurroundedPositions(cellPosition)
+	for _, surroundedPosition := range surroundedPositions {
+		board.openSurroundedCells(surroundedPosition)
+	}
+}
+
 func (board *Board) findSurroundedPositions(cellPosition *position.CellPosition) []*position.CellPosition {
 	surroundedPositions := make([]*position.CellPosition, 0, 8)
 
