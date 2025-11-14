@@ -5,7 +5,8 @@ type Action string
 const (
 	Open    Action = "open"
 	Flag    Action = "flag"
-	Quit    Action = "quit"
+	Exit    Action = "exit"
+	Retry   Action = "retry"
 	Unknown Action = "unknown"
 )
 
@@ -15,8 +16,10 @@ func From(input string) Action {
 		return Open
 	case "flag":
 		return Flag
-	case "quit":
-		return Quit
+	case "exit":
+		return Exit
+	case "retry":
+		return Retry
 	default:
 		return Unknown
 	}

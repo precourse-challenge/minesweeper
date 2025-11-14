@@ -53,6 +53,10 @@ func ShowLoseMessage() {
 	fmt.Println("지뢰를 밟았습니다! 💣💣 게임 종료🥺")
 }
 
+func ShowRestartMessage() {
+	fmt.Println("\n새 난이도로 게임을 재시작하시겠습니까?")
+}
+
 func ShowQuitMessage() {
 	fmt.Println("\n프로그램을 종료합니다.")
 }

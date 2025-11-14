@@ -85,7 +85,7 @@ func (m *SingleMode) parseCommand(inputCommand string) (user.Action, *position.C
 	inputAction := commands[0]
 	action := user.From(inputAction)
 
-	if action == user.Quit {
+	if action == user.Exit {
 		view.ShowQuitMessage()
 		os.Exit(0)
 	}
