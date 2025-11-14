@@ -12,13 +12,22 @@ type Minesweeper struct {
 func (minesweeper *Minesweeper) Run() {
 	view.ShowGameStartMessage()
 
-	gameLevel, err := readInputGameLevel()
-	if err != nil {
-		view.ShowErrorMessage(err)
-	}
+	gameLevel := readGameLevelWithRetry()
 
 	gameMode := mode.NewSingleMode(gameLevel)
 	gameMode.Start()
+}
+
+func readGameLevelWithRetry() level.GameLevel {
+	for {
+		selectedLevel, err := readInputGameLevel()
+		if err != nil {
+			view.ShowErrorMessage(err)
+			continue
+		}
+
+		return selectedLevel
+	}
 }
 
 func readInputGameLevel() (level.GameLevel, error) {
