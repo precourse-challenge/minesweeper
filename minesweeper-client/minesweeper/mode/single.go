@@ -38,6 +38,15 @@ func (m *SingleMode) Start() {
 			view.ShowErrorMessage(err)
 		}
 	}
+
+	view.ShowBoard(m.board)
+
+	if m.board.IsWinStatus() {
+		view.ShowWinMessage()
+	}
+	if m.board.IsLoseStatus() {
+		view.ShowLoseMessage()
+	}
 }
 
 func (m *SingleMode) readCommand() (user.Action, *position.CellPosition, error) {
@@ -76,7 +85,7 @@ func (m *SingleMode) parseCommand(inputCommand string) (user.Action, *position.C
 	inputAction := commands[0]
 	action := user.From(inputAction)
 
-	if action == user.Quit {
+	if action == user.Exit {
 		view.ShowQuitMessage()
 		os.Exit(0)
 	}

@@ -91,6 +91,14 @@ func (board *Board) IsInProgress() bool {
 	return board.gameStatus == InProgress
 }
 
+func (board *Board) IsWinStatus() bool {
+	return board.gameStatus == Win
+}
+
+func (board *Board) IsLoseStatus() bool {
+	return board.gameStatus == Lose
+}
+
 func (board *Board) IsOutOfBounds(cellPosition *position.CellPosition) bool {
 	rowSize := board.GetRowSize()
 	colSize := board.GetColSize()
