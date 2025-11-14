@@ -38,6 +38,15 @@ func (m *SingleMode) Start() {
 			view.ShowErrorMessage(err)
 		}
 	}
+
+	view.ShowBoard(m.board)
+
+	if m.board.IsWinStatus() {
+		view.ShowWinMessage()
+	}
+	if m.board.IsLoseStatus() {
+		view.ShowLoseMessage()
+	}
 }
 
 func (m *SingleMode) readCommand() (user.Action, *position.CellPosition, error) {
