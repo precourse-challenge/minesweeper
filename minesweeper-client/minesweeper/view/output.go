@@ -6,6 +6,7 @@ import (
 	"minesweeper-client/minesweeper/cell"
 	"minesweeper-client/minesweeper/position"
 	"minesweeper-client/minesweeper/util"
+	"time"
 )
 
 func ShowGameStartMessage() {
@@ -39,6 +40,13 @@ func ShowBoard(board *board.Board) {
 func ShowRemainingFlagCount(board *board.Board) {
 	remainingFlagCount := board.GetRemainingFlags()
 	fmt.Printf("남은 깃발 개수: %d\n\n", remainingFlagCount)
+}
+
+func ShowTotalElapsedTime(elapsedTime time.Duration) {
+	minutes := int(elapsedTime.Minutes())
+	seconds := int(elapsedTime.Seconds()) % 60
+
+	fmt.Printf("총 소요 시간: %02d:%02d\n\n", minutes, seconds)
 }
 
 func AskCommand() {

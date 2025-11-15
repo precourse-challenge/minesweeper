@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type SingleMode struct {
@@ -22,6 +23,8 @@ func NewSingleMode(level level.GameLevel) *SingleMode {
 
 func (m *SingleMode) Start() {
 	m.board.InitializeGame()
+
+	startTime := time.Now()
 
 	for m.board.IsInProgress() {
 		view.ShowBoard(m.board)
@@ -40,6 +43,8 @@ func (m *SingleMode) Start() {
 	}
 
 	view.ShowBoard(m.board)
+
+	view.ShowTotalElapsedTime(time.Since(startTime))
 
 	if m.board.IsWinStatus() {
 		view.ShowWinMessage()
