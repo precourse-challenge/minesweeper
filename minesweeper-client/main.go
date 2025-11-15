@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	minesweeperGame := &minesweeper.Minesweeper{}
+	minesweeperGame := minesweeper.Minesweeper{}
 	minesweeperGame.Run()
 }
