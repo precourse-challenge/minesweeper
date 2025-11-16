@@ -2,10 +2,10 @@ package board
 
 import (
 	"fmt"
-	"minesweeper-client/minesweeper/cell"
-	"minesweeper-client/minesweeper/level"
-	"minesweeper-client/minesweeper/position"
-	"minesweeper-client/minesweeper/util"
+	"minesweeper-core/cell"
+	"minesweeper-core/level"
+	"minesweeper-core/position"
+	"minesweeper-core/util"
 )
 
 type Board struct {

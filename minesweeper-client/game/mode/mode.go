@@ -1,6 +1,6 @@
 package mode
 
-import "minesweeper-client/minesweeper/level"
+import "minesweeper-core/level"
 
 type GameMode interface {
 	Start(gameLevel level.GameLevel)

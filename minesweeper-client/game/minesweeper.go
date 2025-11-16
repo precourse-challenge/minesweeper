@@ -1,11 +1,11 @@
-package minesweeper
+package game
 
 import (
 	"fmt"
-	"minesweeper-client/minesweeper/level"
-	"minesweeper-client/minesweeper/mode"
-	"minesweeper-client/minesweeper/user"
-	"minesweeper-client/minesweeper/view"
+	"minesweeper-client/game/mode"
+	"minesweeper-client/game/view"
+	"minesweeper-core/level"
+	"minesweeper-core/user"
 )
 
 type Minesweeper struct {

@@ -2,10 +2,10 @@ package view
 
 import (
 	"fmt"
-	"minesweeper-client/minesweeper/board"
-	"minesweeper-client/minesweeper/cell"
-	"minesweeper-client/minesweeper/position"
-	"minesweeper-client/minesweeper/util"
+	"minesweeper-core/board"
+	"minesweeper-core/cell"
+	"minesweeper-core/position"
+	"minesweeper-core/util"
 	"time"
 )
 

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"minesweeper-client/minesweeper"
+	"minesweeper-client/game"
 )
 
 func main() {
-	minesweeperGame := minesweeper.Minesweeper{}
+	minesweeperGame := game.Minesweeper{}
 	minesweeperGame.Run()
 }
