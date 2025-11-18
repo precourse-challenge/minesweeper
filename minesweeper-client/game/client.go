@@ -2,22 +2,22 @@ package game
 
 import (
 	"fmt"
-	"minesweeper-client/game/mode"
+	"minesweeper-client/game/single"
+	"minesweeper-client/game/user"
 	"minesweeper-client/game/view"
 	"minesweeper-core/level"
-	"minesweeper-core/user"
 )
 
-type Minesweeper struct {
+type Client struct {
 }
 
-func (minesweeper Minesweeper) Run() {
+func (minesweeper Client) Run() {
 	for {
 		view.ShowGameStartMessage()
 
 		gameLevel := minesweeper.readGameLevelWithRetry()
 
-		gameMode := mode.NewSingleMode(gameLevel)
+		gameMode := single.NewSingleMode(gameLevel)
 		gameMode.Start()
 
 		userAction := minesweeper.readNextAction()
@@ -31,7 +31,7 @@ func (minesweeper Minesweeper) Run() {
 	}
 }
 
-func (minesweeper Minesweeper) readGameLevelWithRetry() level.GameLevel {
+func (minesweeper Client) readGameLevelWithRetry() level.GameLevel {
 	for {
 		selectedLevel, err := minesweeper.readInputGameLevel()
 		if err != nil {
@@ -43,7 +43,7 @@ func (minesweeper Minesweeper) readGameLevelWithRetry() level.GameLevel {
 	}
 }
 
-func (minesweeper Minesweeper) readInputGameLevel() (level.GameLevel, error) {
+func (minesweeper Client) readInputGameLevel() (level.GameLevel, error) {
 	view.AskGameLevel()
 	inputLevel := view.Read()
 	view.ShowSelectedGameLevel(inputLevel)
@@ -51,7 +51,7 @@ func (minesweeper Minesweeper) readInputGameLevel() (level.GameLevel, error) {
 	return level.From(inputLevel)
 }
 
-func (minesweeper Minesweeper) readNextAction() user.Action {
+func (minesweeper Client) readNextAction() user.Action {
 	for {
 		view.ShowRestartMessage()
 
@@ -65,7 +65,7 @@ func (minesweeper Minesweeper) readNextAction() user.Action {
 	}
 }
 
-func (minesweeper Minesweeper) parseUserAction(inputAction string) (user.Action, error) {
+func (minesweeper Client) parseUserAction(inputAction string) (user.Action, error) {
 	userAction := user.From(inputAction)
 	if userAction != user.Retry && userAction != user.Exit {
 		return user.Unknown, fmt.Errorf("retry(재시작) 또는 exit(종료)을 입력해야 합니다")
