@@ -1,12 +1,12 @@
-package mode
+package single
 
 import (
 	"fmt"
+	"minesweeper-client/game/user"
 	"minesweeper-client/game/view"
 	"minesweeper-core/board"
 	"minesweeper-core/level"
 	"minesweeper-core/position"
-	"minesweeper-core/user"
 	"os"
 	"strconv"
 	"strings"
@@ -47,10 +47,10 @@ func (m *SingleMode) Start() {
 	view.ShowTotalElapsedTime(time.Since(startTime))
 
 	if m.board.IsWinStatus() {
-		view.ShowWinMessage()
+		view.ShowCompletionMessage()
 	}
 	if m.board.IsLoseStatus() {
-		view.ShowLoseMessage()
+		view.ShowHitMineMessage()
 	}
 }
 
@@ -60,7 +60,7 @@ func (m *SingleMode) readCommand() (user.Action, *position.CellPosition, error) 
 
 	action, cellPosition, err := m.parseCommand(inputCommand)
 	if err != nil {
-		return user.Unknown, nil, err
+		return user.UnknownAction, nil, err
 	}
 	return action, cellPosition, nil
 }
@@ -88,7 +88,7 @@ func (m *SingleMode) parseCommand(inputCommand string) (user.Action, *position.C
 	commands := strings.Fields(inputCommand)
 
 	inputAction := commands[0]
-	action := user.From(inputAction)
+	action := user.ActionFrom(inputAction)
 
 	if action == user.Exit {
 		view.ShowQuitMessage()
@@ -96,7 +96,7 @@ func (m *SingleMode) parseCommand(inputCommand string) (user.Action, *position.C
 	}
 
 	if len(commands) != 3 {
-		return user.Unknown, nil, fmt.Errorf("명령어 형식이 올바르지 않습니다")
+		return user.UnknownAction, nil, fmt.Errorf("명령어 형식이 올바르지 않습니다")
 	}
 
 	inputRow := commands[1]
@@ -104,21 +104,21 @@ func (m *SingleMode) parseCommand(inputCommand string) (user.Action, *position.C
 
 	row, err := m.getSelectedRowIndex(inputRow)
 	if err != nil {
-		return user.Unknown, nil, err
+		return user.UnknownAction, nil, err
 	}
 
 	col, err := m.getSelectedColIndex(inputCol)
 	if err != nil {
-		return user.Unknown, nil, err
+		return user.UnknownAction, nil, err
 	}
 
 	cellPosition, err := position.NewCellPosition(row, col)
 	if err != nil {
-		return user.Unknown, nil, err
+		return user.UnknownAction, nil, err
 	}
 
 	if m.board.IsOutOfBounds(cellPosition) {
-		return user.Unknown, nil, fmt.Errorf("올바르지 않은 좌표값입니다")
+		return user.UnknownAction, nil, fmt.Errorf("올바르지 않은 좌표값입니다")
 	}
 
 	return action, cellPosition, nil
