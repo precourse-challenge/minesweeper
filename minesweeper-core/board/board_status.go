@@ -1,9 +1,9 @@
 package board
 
-type GameStatus int
+type Status int
 
 const (
-	Ready GameStatus = iota
+	Ready Status = iota
 	InProgress
 	Win
 	Lose

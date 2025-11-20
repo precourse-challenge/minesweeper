@@ -2,11 +2,11 @@ package mode
 
 import (
 	"fmt"
-	"minesweeper-client/minesweeper/board"
-	"minesweeper-client/minesweeper/level"
-	"minesweeper-client/minesweeper/position"
-	"minesweeper-client/minesweeper/user"
-	"minesweeper-client/minesweeper/view"
+	"minesweeper-client/game/view"
+	"minesweeper-core/board"
+	"minesweeper-core/level"
+	"minesweeper-core/position"
+	"minesweeper-core/user"
 	"os"
 	"strconv"
 	"strings"

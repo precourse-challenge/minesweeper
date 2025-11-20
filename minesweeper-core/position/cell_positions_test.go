@@ -1,7 +1,7 @@
 package position
 
 import (
-	"minesweeper-client/minesweeper/cell"
+	"minesweeper-core/cell"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

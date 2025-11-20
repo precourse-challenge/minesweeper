@@ -2,17 +2,17 @@ package board
 
 import (
 	"fmt"
-	"minesweeper-client/minesweeper/cell"
-	"minesweeper-client/minesweeper/level"
-	"minesweeper-client/minesweeper/position"
-	"minesweeper-client/minesweeper/util"
+	"minesweeper-core/cell"
+	"minesweeper-core/level"
+	"minesweeper-core/position"
+	"minesweeper-core/util"
 )
 
 type Board struct {
 	cells         [][]cell.Cell
 	landMineCount int
 	flagCount     int
-	gameStatus    GameStatus
+	status        Status
 }
 
 func NewBoard(level level.GameLevel) *Board {
@@ -27,12 +27,12 @@ func NewBoard(level level.GameLevel) *Board {
 	return &Board{
 		cells:         cells,
 		landMineCount: level.MineCount(),
-		gameStatus:    Ready,
+		status:        Ready,
 	}
 }
 
 func (board *Board) InitializeGame() {
-	board.gameStatus = InProgress
+	board.status = InProgress
 	board.initializeEmptyCells()
 
 	cellPositions := position.NewCellPositions(board.cells)
@@ -74,29 +74,29 @@ func (board *Board) Open(cellPosition *position.CellPosition) error {
 
 	if board.isLandMineCell(cellPosition) {
 		board.openCell(cellPosition)
-		board.gameStatus = Lose
+		board.status = Lose
 		return nil
 	}
 
 	board.openSurroundedCells(cellPosition)
 
 	if board.isGameWon() {
-		board.gameStatus = Win
+		board.status = Win
 	}
 
 	return nil
 }
 
 func (board *Board) IsInProgress() bool {
-	return board.gameStatus == InProgress
+	return board.status == InProgress
 }
 
 func (board *Board) IsWinStatus() bool {
-	return board.gameStatus == Win
+	return board.status == Win
 }
 
 func (board *Board) IsLoseStatus() bool {
-	return board.gameStatus == Lose
+	return board.status == Lose
 }
 
 func (board *Board) IsOutOfBounds(cellPosition *position.CellPosition) bool {
@@ -111,6 +111,20 @@ func (board *Board) GetRemainingFlags() int {
 	return board.landMineCount - board.flagCount
 }
 
+func (board *Board) GetSnapshots() [][]cell.Snapshot {
+	rowSize := board.GetRowSize()
+	colSize := board.GetColSize()
+
+	snapshots := make([][]cell.Snapshot, rowSize)
+	for row := 0; row < rowSize; row++ {
+		snapshots[row] = make([]cell.Snapshot, colSize)
+		for col := 0; col < colSize; col++ {
+			snapshots[row][col] = board.cells[row][col].GetSnapshot()
+		}
+	}
+	return snapshots
+}
+
 func (board *Board) GetSnapshot(cellPosition *position.CellPosition) cell.Snapshot {
 	boardCell := board.cells[cellPosition.RowIndex()][cellPosition.ColIndex()]
 	return boardCell.GetSnapshot()
@@ -122,6 +136,10 @@ func (board *Board) GetColSize() int {
 
 func (board *Board) GetRowSize() int {
 	return len(board.cells)
+}
+
+func (board *Board) GetCells() [][]cell.Cell {
+	return board.cells
 }
 
 func (board *Board) initializeEmptyCells() {

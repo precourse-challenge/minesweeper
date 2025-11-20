@@ -1,4 +1,4 @@
-module minesweeper-client
+module minesweeper-infrastructure
 
 go 1.23
 

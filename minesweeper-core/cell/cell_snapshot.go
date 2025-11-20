@@ -29,6 +29,10 @@ func OfNumber(adjacentLandMineCount int) Snapshot {
 	return NewCellSnapshot(Number, adjacentLandMineCount)
 }
 
+func (snapshot Snapshot) IsUnchecked() bool {
+	return snapshot.status == Unchecked
+}
+
 func (snapshot Snapshot) GetStatus() SnapshotStatus {
 	return snapshot.status
 }

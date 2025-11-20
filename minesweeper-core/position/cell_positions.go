@@ -2,8 +2,8 @@ package position
 
 import (
 	"math/rand"
-	"minesweeper-client/minesweeper/cell"
-	"minesweeper-client/minesweeper/util"
+	"minesweeper-core/cell"
+	"minesweeper-core/util"
 	"time"
 )
 
