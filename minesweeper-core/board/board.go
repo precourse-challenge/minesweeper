@@ -12,7 +12,7 @@ type Board struct {
 	cells         [][]cell.Cell
 	landMineCount int
 	flagCount     int
-	gameStatus    GameStatus
+	status        Status
 }
 
 func NewBoard(level level.GameLevel) *Board {
@@ -27,12 +27,12 @@ func NewBoard(level level.GameLevel) *Board {
 	return &Board{
 		cells:         cells,
 		landMineCount: level.MineCount(),
-		gameStatus:    Ready,
+		status:        Ready,
 	}
 }
 
 func (board *Board) InitializeGame() {
-	board.gameStatus = InProgress
+	board.status = InProgress
 	board.initializeEmptyCells()
 
 	cellPositions := position.NewCellPositions(board.cells)
@@ -74,29 +74,29 @@ func (board *Board) Open(cellPosition *position.CellPosition) error {
 
 	if board.isLandMineCell(cellPosition) {
 		board.openCell(cellPosition)
-		board.gameStatus = Lose
+		board.status = Lose
 		return nil
 	}
 
 	board.openSurroundedCells(cellPosition)
 
 	if board.isGameWon() {
-		board.gameStatus = Win
+		board.status = Win
 	}
 
 	return nil
 }
 
 func (board *Board) IsInProgress() bool {
-	return board.gameStatus == InProgress
+	return board.status == InProgress
 }
 
 func (board *Board) IsWinStatus() bool {
-	return board.gameStatus == Win
+	return board.status == Win
 }
 
 func (board *Board) IsLoseStatus() bool {
-	return board.gameStatus == Lose
+	return board.status == Lose
 }
 
 func (board *Board) IsOutOfBounds(cellPosition *position.CellPosition) bool {
