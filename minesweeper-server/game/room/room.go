@@ -3,6 +3,7 @@ package room
 import (
 	"fmt"
 	"log"
+	"minesweeper-infrastructure/dto"
 	"minesweeper-infrastructure/network"
 	"minesweeper-infrastructure/protocol"
 	"minesweeper-server/game/match"
@@ -49,8 +50,15 @@ func (r *Room) StartGame() {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
+	r.match.InitializeGame()
+
+	board1 := dto.ToBoardDto(r.match.GetPlayer1Board())
+	board2 := dto.ToBoardDto(r.match.GetPlayer2Board())
+
 	message := protocol.Message{
 		Type:    protocol.Start,
+		Board1:  board1,
+		Board2:  board2,
 		Message: "게임이 시작되었습니다!",
 	}
 	log.Println(message.Message)

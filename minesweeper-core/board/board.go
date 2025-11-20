@@ -111,6 +111,20 @@ func (board *Board) GetRemainingFlags() int {
 	return board.landMineCount - board.flagCount
 }
 
+func (board *Board) GetSnapshots() [][]cell.Snapshot {
+	rowSize := board.GetRowSize()
+	colSize := board.GetColSize()
+
+	snapshots := make([][]cell.Snapshot, rowSize)
+	for row := 0; row < rowSize; row++ {
+		snapshots[row] = make([]cell.Snapshot, colSize)
+		for col := 0; col < colSize; col++ {
+			snapshots[row][col] = board.cells[row][col].GetSnapshot()
+		}
+	}
+	return snapshots
+}
+
 func (board *Board) GetSnapshot(cellPosition *position.CellPosition) cell.Snapshot {
 	boardCell := board.cells[cellPosition.RowIndex()][cellPosition.ColIndex()]
 	return boardCell.GetSnapshot()
@@ -122,6 +136,10 @@ func (board *Board) GetColSize() int {
 
 func (board *Board) GetRowSize() int {
 	return len(board.cells)
+}
+
+func (board *Board) GetCells() [][]cell.Cell {
+	return board.cells
 }
 
 func (board *Board) initializeEmptyCells() {
