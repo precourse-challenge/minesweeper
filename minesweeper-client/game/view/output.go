@@ -13,6 +13,10 @@ func ShowGameStartMessage() {
 	fmt.Println("🎮지뢰찾기 게임을 시작합니다!")
 }
 
+func ShowGameModeSelection() {
+	fmt.Println("게임 모드를 선택하세요 (single / multi)")
+}
+
 func AskGameLevel() {
 	fmt.Println("\n난이도를 선택하세요 (easy / normal / hard)")
 }
@@ -30,7 +34,9 @@ func ShowBoard(board *board.Board) {
 			cellPosition := util.FatalIfError(position.NewCellPosition(row, col))
 			cellSnapshot := board.GetSnapshot(cellPosition)
 
-			fmt.Printf("%2s ", signOf(cellSnapshot))
+			status := cellSnapshot.GetStatus()
+			count := cellSnapshot.GetAdjacentLandMineCount()
+			fmt.Printf("%2s ", signOf(status, count))
 		}
 		fmt.Println()
 	}
