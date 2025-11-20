@@ -17,6 +17,10 @@ func ShowGameModeSelection() {
 	fmt.Println("게임 모드를 선택하세요 (single / multi)")
 }
 
+func ShowOpponentWaitMessage() {
+	fmt.Println("\n다른 플레이어를 기다리는 중...")
+}
+
 func AskGameLevel() {
 	fmt.Println("\n난이도를 선택하세요 (easy / normal / hard)")
 }
@@ -45,7 +49,7 @@ func ShowBoard(board *board.Board) {
 
 func ShowRemainingFlagCount(board *board.Board) {
 	remainingFlagCount := board.GetRemainingFlags()
-	fmt.Printf("남은 깃발 개수: %d\n\n", remainingFlagCount)
+	fmt.Printf("남은 깃발 개수: %d\n", remainingFlagCount)
 }
 
 func ShowTotalElapsedTime(elapsedTime time.Duration) {
@@ -56,7 +60,7 @@ func ShowTotalElapsedTime(elapsedTime time.Duration) {
 }
 
 func AskCommand() {
-	fmt.Println("명령어를 입력해주세요 (open x y / flag x y / quit)")
+	fmt.Println("\n명령어를 입력해주세요 (open x y / flag x y / exit)")
 }
 
 func ShowWinMessage() {
