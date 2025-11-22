@@ -3,6 +3,7 @@ package room
 import (
 	"fmt"
 	"log"
+	"minesweeper-core/position"
 	"minesweeper-infrastructure/dto"
 	"minesweeper-infrastructure/network"
 	"minesweeper-infrastructure/protocol"
@@ -63,6 +64,76 @@ func (r *Room) StartGame() {
 	}
 	log.Println(message.Message)
 
+	r.broadcastMessage(message)
+}
+
+func (r *Room) HandleOpen(playerId, row, col int) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	cellPosition, err := position.NewCellPosition(row, col)
+	if err != nil {
+		message := protocol.Message{
+			Type:    protocol.Error,
+			Message: err.Error(),
+		}
+		r.broadcastMessage(message)
+		return
+	}
+
+	result, err := r.match.Open(playerId, cellPosition)
+	if err != nil {
+		message := protocol.Message{
+			Type:    protocol.Error,
+			Message: err.Error(),
+		}
+		r.broadcastMessage(message)
+		return
+	}
+
+	board1 := dto.ToBoardDto(r.match.GetPlayer1Board())
+	board2 := dto.ToBoardDto(r.match.GetPlayer2Board())
+
+	message := protocol.Message{
+		Type:   protocol.Update,
+		Board1: board1,
+		Board2: board2,
+	}
+	r.broadcastMessage(message)
+}
+
+func (r *Room) HandleFlag(playerId, row, col int) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	cellPosition, err := position.NewCellPosition(row, col)
+	if err != nil {
+		message := protocol.Message{
+			Type:    protocol.Error,
+			Message: err.Error(),
+		}
+		r.broadcastMessage(message)
+		return
+	}
+
+	err = r.match.Flag(playerId, cellPosition)
+	if err != nil {
+		message := protocol.Message{
+			Type:    protocol.Error,
+			Message: err.Error(),
+		}
+		r.broadcastMessage(message)
+		return
+	}
+
+	board1 := dto.ToBoardDto(r.match.GetPlayer1Board())
+	board2 := dto.ToBoardDto(r.match.GetPlayer2Board())
+
+	message := protocol.Message{
+		Type:   protocol.Update,
+		Board1: board1,
+		Board2: board2,
+	}
 	r.broadcastMessage(message)
 }
 

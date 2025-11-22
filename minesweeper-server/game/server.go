@@ -74,6 +74,16 @@ func handleMessage(
 	switch message.Type {
 	case protocol.Join:
 		handleJoin(conn, matchMaker, gameRoom, playerId)
+
+	case protocol.Open:
+		if *gameRoom != nil {
+			(*gameRoom).HandleOpen(*playerId, message.Row, message.Col)
+		}
+
+	case protocol.Flag:
+		if *gameRoom != nil {
+			(*gameRoom).HandleFlag(*playerId, message.Row, message.Col)
+		}
 	}
 }
 

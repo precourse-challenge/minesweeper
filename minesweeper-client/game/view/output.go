@@ -6,6 +6,7 @@ import (
 	"minesweeper-core/cell"
 	"minesweeper-core/position"
 	"minesweeper-core/util"
+	"minesweeper-infrastructure/dto"
 	"time"
 )
 
@@ -45,6 +46,37 @@ func ShowBoard(board *board.Board) {
 		fmt.Println()
 	}
 	fmt.Println()
+}
+
+func ShowMultiBoards(board1Dto, board2Dto dto.BoardDto, playerId int) {
+	fmt.Printf("\n       내 게임판 (Player%d)"+
+		"               상대방 게임판 (Player%d)\n", playerId, 3-playerId)
+	rows := len(board1Dto)
+	cols := len(board1Dto[0])
+
+	showMultiColumnNumbers(cols)
+
+	var myBoard, enemyBoard dto.BoardDto
+	if playerId == 1 {
+		myBoard = board1Dto
+		enemyBoard = board2Dto
+	} else {
+		myBoard = board2Dto
+		enemyBoard = board1Dto
+	}
+
+	for i := 0; i < rows; i++ {
+		fmt.Printf("%2d ", i+1)
+		for j := 0; j < cols; j++ {
+			fmt.Printf("%2s ", getCellSign(myBoard[i][j]))
+		}
+
+		fmt.Printf("  %2d ", i+1)
+		for j := 0; j < cols; j++ {
+			fmt.Printf("%2s ", getCellSign(enemyBoard[i][j]))
+		}
+		fmt.Println()
+	}
 }
 
 func ShowRemainingFlagCount(board *board.Board) {
@@ -93,6 +125,18 @@ func showColNumbers(board *board.Board) {
 	fmt.Println()
 }
 
+func showMultiColumnNumbers(cols int) {
+	fmt.Print("   ")
+	for j := 1; j <= cols; j++ {
+		fmt.Printf("%2d ", j)
+	}
+	fmt.Print("     ")
+	for j := 1; j <= cols; j++ {
+		fmt.Printf("%2d ", j)
+	}
+	fmt.Println()
+}
+
 func generateColNumbers(colSize int) []int {
 	numbers := make([]int, 0, colSize)
 	for i := 1; i <= colSize; i++ {
@@ -101,8 +145,8 @@ func generateColNumbers(colSize int) []int {
 	return numbers
 }
 
-func signOf(snapshot cell.Snapshot) string {
-	switch snapshot.GetStatus() {
+func signOf(status cell.SnapshotStatus, adjacentLandMineCount int) string {
+	switch status {
 	case cell.Empty:
 		return "■"
 	case cell.Flag:
@@ -110,8 +154,12 @@ func signOf(snapshot cell.Snapshot) string {
 	case cell.LandMine:
 		return "☼"
 	case cell.Number:
-		return fmt.Sprintf("%d", snapshot.GetAdjacentLandMineCount())
+		return fmt.Sprintf("%d", adjacentLandMineCount)
 	default:
 		return "□"
 	}
+}
+
+func getCellSign(snapshotDto dto.CellSnapshotDto) string {
+	return signOf(snapshotDto.Status, snapshotDto.Number)
 }
