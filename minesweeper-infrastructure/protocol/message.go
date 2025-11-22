@@ -12,7 +12,6 @@ const (
 	Flag     MessageType = "flag"
 	Update   MessageType = "update"
 	GameOver MessageType = "game_over"
-	Exit     MessageType = "exit"
 	Error    MessageType = "error"
 )
 
