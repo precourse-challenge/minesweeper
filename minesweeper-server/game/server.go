@@ -51,16 +51,15 @@ func handleClient(conn *network.Connection, matchMaker *matchmaking.Matchmaker) 
 	defer closeConnection(conn)
 
 	var gameRoom *room.Room
-	var playerId int
 
 	for {
 		message, err := conn.Receive()
 		if err != nil {
-			clientDisconnect(gameRoom, playerId, matchMaker)
+			clientDisconnect(gameRoom, conn, matchMaker)
 			return
 		}
 
-		handleMessage(conn, matchMaker, message, &gameRoom, &playerId)
+		handleMessage(conn, matchMaker, message, &gameRoom)
 	}
 }
 
@@ -69,33 +68,26 @@ func handleMessage(
 	matchMaker *matchmaking.Matchmaker,
 	message protocol.Message,
 	gameRoom **room.Room,
-	playerId *int,
 ) {
 	switch message.Type {
 	case protocol.Join:
-		handleJoin(conn, matchMaker, gameRoom, playerId)
+		handleJoin(conn, matchMaker, gameRoom)
 
 	case protocol.Open:
 		if *gameRoom != nil {
-			(*gameRoom).HandleOpen(*playerId, message.Row, message.Col)
+			(*gameRoom).HandleOpen(conn, message.Row, message.Col)
 		}
 
 	case protocol.Flag:
 		if *gameRoom != nil {
-			(*gameRoom).HandleFlag(*playerId, message.Row, message.Col)
+			(*gameRoom).HandleFlag(conn, message.Row, message.Col)
 		}
 	}
 }
 
-func handleJoin(
-	conn *network.Connection,
-	matchMaker *matchmaking.Matchmaker,
-	gameRoom **room.Room,
-	playerId *int,
-) {
+func handleJoin(conn *network.Connection, matchMaker *matchmaking.Matchmaker, gameRoom **room.Room) {
 	room, id := matchMaker.FindOrCreateRoom(conn)
 	*gameRoom = room
-	*playerId = id
 
 	response := protocol.Message{
 		Type:     protocol.Joined,
@@ -121,9 +113,9 @@ func closeConnection(conn *network.Connection) {
 	}
 }
 
-func clientDisconnect(gameRoom *room.Room, playerId int, matchMaker *matchmaking.Matchmaker) {
+func clientDisconnect(gameRoom *room.Room, conn *network.Connection, matchMaker *matchmaking.Matchmaker) {
 	if gameRoom != nil {
-		gameRoom.HandleDisconnect(playerId)
+		gameRoom.HandleDisconnect(conn)
 		matchMaker.RemoveRoom(gameRoom.GetId())
 	}
 }

@@ -14,6 +14,7 @@ import (
 type Room struct {
 	id          string
 	players     [2]*network.Connection
+	playerIds   map[*network.Connection]int
 	playerCount int
 	match       *match.Match
 	mutex       sync.Mutex
@@ -23,6 +24,7 @@ func NewRoom(id string, firstPlayer *network.Connection) *Room {
 	return &Room{
 		id:          id,
 		players:     [2]*network.Connection{firstPlayer, nil},
+		playerIds:   map[*network.Connection]int{firstPlayer: 1},
 		playerCount: 1,
 		match:       match.NewMatch(),
 	}
@@ -37,6 +39,10 @@ func (r *Room) AddPlayer(player *network.Connection) bool {
 	}
 
 	r.players[1] = player
+	if r.playerIds == nil {
+		r.playerIds = make(map[*network.Connection]int)
+	}
+	r.playerIds[player] = 2
 	r.playerCount = 2
 	return true
 }
@@ -67,34 +73,38 @@ func (r *Room) StartGame() {
 	r.broadcastMessage(message)
 }
 
-func (r *Room) HandleOpen(playerId, row, col int) {
+func (r *Room) HandleOpen(conn *network.Connection, row, col int) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
+	playerId, err := r.getValidPlayerId(conn)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	cellPosition, err := position.NewCellPosition(row, col)
 	if err != nil {
-		message := protocol.Message{
+		r.broadcastMessage(protocol.Message{
 			Type:    protocol.Error,
 			Message: err.Error(),
-		}
-		r.broadcastMessage(message)
+		})
 		return
 	}
 
 	result, err := r.match.Open(playerId, cellPosition)
 	if err != nil {
-		message := protocol.Message{
+		r.broadcastMessage(protocol.Message{
 			Type:    protocol.Error,
 			Message: err.Error(),
-		}
-		r.broadcastMessage(message)
+		})
 		return
 	}
 
-	if result.IsGameOver {
-		board1 := dto.ToBoardDto(r.match.GetPlayer1Board())
-		board2 := dto.ToBoardDto(r.match.GetPlayer2Board())
+	board1 := dto.ToBoardDto(r.match.GetPlayer1Board())
+	board2 := dto.ToBoardDto(r.match.GetPlayer2Board())
 
+	if result.IsGameOver {
 		message := protocol.Message{
 			Type:    protocol.GameOver,
 			Board1:  board1,
@@ -104,9 +114,6 @@ func (r *Room) HandleOpen(playerId, row, col int) {
 		}
 		r.broadcastMessage(message)
 	} else {
-		board1 := dto.ToBoardDto(r.match.GetPlayer1Board())
-		board2 := dto.ToBoardDto(r.match.GetPlayer2Board())
-
 		message := protocol.Message{
 			Type:   protocol.Update,
 			Board1: board1,
@@ -116,27 +123,31 @@ func (r *Room) HandleOpen(playerId, row, col int) {
 	}
 }
 
-func (r *Room) HandleFlag(playerId, row, col int) {
+func (r *Room) HandleFlag(conn *network.Connection, row, col int) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
+	playerId, err := r.getValidPlayerId(conn)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	cellPosition, err := position.NewCellPosition(row, col)
 	if err != nil {
-		message := protocol.Message{
+		r.broadcastMessage(protocol.Message{
 			Type:    protocol.Error,
 			Message: err.Error(),
-		}
-		r.broadcastMessage(message)
+		})
 		return
 	}
 
 	err = r.match.Flag(playerId, cellPosition)
 	if err != nil {
-		message := protocol.Message{
+		r.broadcastMessage(protocol.Message{
 			Type:    protocol.Error,
 			Message: err.Error(),
-		}
-		r.broadcastMessage(message)
+		})
 		return
 	}
 
@@ -151,9 +162,15 @@ func (r *Room) HandleFlag(playerId, row, col int) {
 	r.broadcastMessage(message)
 }
 
-func (r *Room) HandleDisconnect(playerId int) {
+func (r *Room) HandleDisconnect(conn *network.Connection) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
+
+	playerId, err := r.getValidPlayerId(conn)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	winner := 3 - playerId
 	message := protocol.Message{
@@ -163,7 +180,7 @@ func (r *Room) HandleDisconnect(playerId int) {
 	}
 
 	otherPlayerIndex := winner - 1
-	if r.players[otherPlayerIndex] != nil {
+	if otherPlayerIndex >= 0 && otherPlayerIndex < len(r.players) && r.players[otherPlayerIndex] != nil {
 		err := r.players[otherPlayerIndex].Send(message)
 		if err != nil {
 			log.Println("상대 플레이어에게 종료 메시지 전송을 실패했습니다.", err)
@@ -171,6 +188,24 @@ func (r *Room) HandleDisconnect(playerId int) {
 	}
 
 	r.cleanup()
+}
+
+func (r *Room) getValidPlayerId(conn *network.Connection) (int, error) {
+	playerId := r.getPlayerId(conn)
+	if playerId == 0 {
+		return 0, fmt.Errorf("유효하지 않은 플레이어의 요청입니다")
+	}
+	return playerId, nil
+}
+
+func (r *Room) getPlayerId(conn *network.Connection) int {
+	if r.playerIds == nil {
+		return 0
+	}
+	if id, exists := r.playerIds[conn]; exists {
+		return id
+	}
+	return 0
 }
 
 func (r *Room) GetId() string {
@@ -184,7 +219,7 @@ func (r *Room) broadcastMessage(message protocol.Message) {
 			messageCopy.PlayerId = i + 1
 			err := player.Send(messageCopy)
 			if err != nil {
-				fmt.Println("메시지 전송을 실패했습니다.", err)
+				log.Println("메시지 전송을 실패했습니다.", err)
 			}
 		}
 	}
