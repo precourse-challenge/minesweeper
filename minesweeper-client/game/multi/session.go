@@ -105,6 +105,7 @@ func (s *Session) handleStart(message protocol.Message) {
 		Board1:   s.board1,
 		Board2:   s.board2,
 		PlayerId: s.playerId,
+		Message:  message.Message,
 	}
 }
 
@@ -116,12 +117,14 @@ func (s *Session) handleUpdate(message protocol.Message) {
 		Board1:   s.board1,
 		Board2:   s.board2,
 		PlayerId: s.playerId,
+		Message:  message.Message,
 	}
 }
 
 func (s *Session) handleError(message protocol.Message) {
 	s.eventChannels.ErrorChan <- ErrorEvent{
-		Err: fmt.Errorf(message.Message),
+		Err:     fmt.Errorf(message.Message),
+		Message: message.Message,
 	}
 }
 
@@ -135,6 +138,7 @@ func (s *Session) handleGameOver(message protocol.Message) {
 		Board2:   s.board2,
 		PlayerId: s.playerId,
 		Winner:   message.Winner,
+		Message:  message.Message,
 	}
 }
 

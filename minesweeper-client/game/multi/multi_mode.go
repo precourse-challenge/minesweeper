@@ -34,8 +34,6 @@ func NewMultiMode() *MultiMode {
 }
 
 func (m *MultiMode) Start() {
-	defer m.closeConnection(m.session)
-
 	err := m.session.JoinGame()
 	if err != nil {
 		log.Fatal("게임 참가에 실패했습니다.", err)
@@ -59,6 +57,7 @@ func (m *MultiMode) handleSessionEvents() {
 			view.ShowOpponentWaitMessage()
 
 		case e := <-m.sessionEventChannels.StartChan:
+			fmt.Println(e.Message)
 			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
 			m.signalInputReady()
 
@@ -67,11 +66,14 @@ func (m *MultiMode) handleSessionEvents() {
 			m.signalInputReady()
 
 		case e := <-m.sessionEventChannels.ErrorChan:
+			fmt.Println(e.Message)
 			view.ShowErrorMessage(e.Err)
 			m.signalInputReady()
 
 		case e := <-m.sessionEventChannels.GameOverChan:
+			fmt.Println(e.Message)
 			m.displayGameOver(e)
+			m.closeConnection(m.session)
 			return
 		}
 	}
@@ -111,6 +113,10 @@ func (m *MultiMode) processUserInput() bool {
 	}
 
 	if action == user.Exit {
+		err := m.session.Exit()
+		if err != nil {
+			view.ShowErrorMessage(err)
+		}
 		view.ShowQuitMessage()
 		return true
 	}
