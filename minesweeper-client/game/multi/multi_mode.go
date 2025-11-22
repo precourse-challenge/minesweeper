@@ -6,7 +6,6 @@ import (
 	"minesweeper-client/game/user"
 	"minesweeper-client/game/view"
 	"minesweeper-core/position"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -14,6 +13,8 @@ import (
 type MultiMode struct {
 	session              *Session
 	sessionEventChannels *SessionEventChannels
+	inputReady           chan struct{}
+	done                 chan struct{}
 }
 
 func NewMultiMode() *MultiMode {
@@ -24,45 +25,11 @@ func NewMultiMode() *MultiMode {
 		log.Fatal("서버 연결 실패:", err)
 	}
 
-	multiMode := &MultiMode{
+	return &MultiMode{
 		session:              session,
 		sessionEventChannels: eventChannels,
-	}
-
-	go multiMode.listenSessionEvents()
-
-	return multiMode
-}
-
-func (m *MultiMode) listenSessionEvents() {
-	for {
-		select {
-
-		case e := <-m.sessionEventChannels.JoinedChan:
-			view.ShowPlayerJoined(e.PlayerId)
-			view.ShowOpponentWaitMessage()
-
-		case e := <-m.sessionEventChannels.StartChan:
-			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
-			view.AskCommand()
-
-		case e := <-m.sessionEventChannels.UpdateChan:
-			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
-			view.AskCommand()
-
-		case e := <-m.sessionEventChannels.ErrorChan:
-			view.ShowErrorMessage(e.Err)
-			view.AskCommand()
-
-		case e := <-m.sessionEventChannels.GameOverChan:
-			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
-
-			if e.Winner == e.PlayerId {
-				view.ShowWinMessage()
-			} else {
-				view.ShowLoseMessage()
-			}
-		}
+		inputReady:           make(chan struct{}, 5),
+		done:                 make(chan struct{}),
 	}
 }
 
@@ -76,19 +43,85 @@ func (m *MultiMode) Start() {
 	}
 
 	go m.session.StartReceiving()
+	go m.handleSessionEvents()
+
+	m.runInputLoop()
+}
+
+func (m *MultiMode) handleSessionEvents() {
+	defer close(m.done)
 
 	for {
-		action, cellPosition, err := m.readCommand()
-		if err != nil {
-			view.ShowErrorMessage(err)
-			continue
-		}
+		select {
 
-		err = m.handleActionOnCell(action, cellPosition)
-		if err != nil {
-			view.ShowErrorMessage(err)
+		case e := <-m.sessionEventChannels.JoinedChan:
+			view.ShowPlayerJoined(e.PlayerId)
+			view.ShowOpponentWaitMessage()
+
+		case e := <-m.sessionEventChannels.StartChan:
+			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
+			m.signalInputReady()
+
+		case e := <-m.sessionEventChannels.UpdateChan:
+			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
+			m.signalInputReady()
+
+		case e := <-m.sessionEventChannels.ErrorChan:
+			view.ShowErrorMessage(e.Err)
+			m.signalInputReady()
+
+		case e := <-m.sessionEventChannels.GameOverChan:
+			m.displayGameOver(e)
+			return
 		}
 	}
+}
+
+func (m *MultiMode) displayGameOver(e GameOverEvent) {
+	view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
+
+	if e.Winner == e.PlayerId {
+		view.ShowWinMessage()
+	} else {
+		view.ShowLoseMessage()
+	}
+}
+
+func (m *MultiMode) runInputLoop() {
+	for {
+		select {
+		case <-m.inputReady:
+			exit := m.processUserInput()
+			if exit {
+				return
+			}
+		case <-m.done:
+			return
+		}
+	}
+}
+
+func (m *MultiMode) processUserInput() bool {
+	view.AskCommand()
+	action, cellPosition, err := m.readCommand()
+	if err != nil {
+		view.ShowErrorMessage(err)
+		m.signalInputReady()
+		return false
+	}
+
+	if action == user.Exit {
+		view.ShowQuitMessage()
+		return true
+	}
+
+	err = m.handleActionOnCell(action, cellPosition)
+	if err != nil {
+		view.ShowErrorMessage(err)
+		m.signalInputReady()
+	}
+
+	return false
 }
 
 func (m *MultiMode) readCommand() (user.Action, *position.CellPosition, error) {
@@ -104,12 +137,15 @@ func (m *MultiMode) readCommand() (user.Action, *position.CellPosition, error) {
 func (m *MultiMode) parseCommand(inputCommand string) (user.Action, *position.CellPosition, error) {
 	commands := strings.Fields(inputCommand)
 
+	if len(commands) == 0 {
+		return user.UnknownAction, nil, fmt.Errorf("명령어를 입력해주세요")
+	}
+
 	inputAction := commands[0]
 	action := user.ActionFrom(inputAction)
 
 	if action == user.Exit {
-		view.ShowQuitMessage()
-		os.Exit(0)
+		return user.Exit, nil, nil
 	}
 
 	if len(commands) != 3 {
@@ -119,12 +155,12 @@ func (m *MultiMode) parseCommand(inputCommand string) (user.Action, *position.Ce
 	inputRow := commands[1]
 	inputCol := commands[2]
 
-	row, err := m.getSelectedRowIndex(inputRow)
+	row, err := m.parseCoordinate(inputRow)
 	if err != nil {
 		return user.UnknownAction, nil, err
 	}
 
-	col, err := m.getSelectedColIndex(inputCol)
+	col, err := m.parseCoordinate(inputCol)
 	if err != nil {
 		return user.UnknownAction, nil, err
 	}
@@ -137,45 +173,36 @@ func (m *MultiMode) parseCommand(inputCommand string) (user.Action, *position.Ce
 	return action, cellPosition, nil
 }
 
-func (m *MultiMode) getSelectedColIndex(inputCol string) (int, error) {
-	col, err := strconv.Atoi(inputCol)
+func (m *MultiMode) parseCoordinate(input string) (int, error) {
+	coordinate, err := strconv.Atoi(input)
 	if err != nil {
 		return 0, fmt.Errorf("좌표는 숫자여야 합니다")
 	}
-	return col - 1, nil
+	return coordinate - 1, nil
 }
 
-func (m *MultiMode) getSelectedRowIndex(inputRow string) (int, error) {
-	row, err := strconv.Atoi(inputRow)
-	if err != nil {
-		return 0, fmt.Errorf("좌표는 숫자여야 합니다")
+func (m *MultiMode) handleActionOnCell(action user.Action, pos *position.CellPosition) error {
+	switch action {
+	case user.Open:
+		return m.session.Open(pos.RowIndex(), pos.ColIndex())
+	case user.Flag:
+		return m.session.Flag(pos.RowIndex(), pos.ColIndex())
+	default:
+		return fmt.Errorf("잘못된 명령어입니다")
 	}
-	return row - 1, nil
 }
 
-func (m *MultiMode) handleActionOnCell(action user.Action, cellPosition *position.CellPosition) error {
-	if action == user.Open {
-		err := m.session.Open(cellPosition.RowIndex(), cellPosition.ColIndex())
-		if err != nil {
-			return err
-		}
-		return nil
+func (m *MultiMode) signalInputReady() {
+	select {
+	case m.inputReady <- struct{}{}:
+	default:
 	}
-	if action == user.Flag {
-		err := m.session.Flag(cellPosition.RowIndex(), cellPosition.ColIndex())
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	return fmt.Errorf("잘못된 명령어를 입력했습니다")
 }
 
 func (m *MultiMode) closeConnection(gameClient *Session) {
 	err := gameClient.Close()
 	if err != nil {
-		err := fmt.Errorf("클라이언트 연결 종료를 실패했습니다 %w", err)
+		err := fmt.Errorf("연결 종료를 실패했습니다 %w", err)
 		view.ShowErrorMessage(err)
 	}
 }
