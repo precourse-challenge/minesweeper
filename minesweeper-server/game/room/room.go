@@ -91,15 +91,29 @@ func (r *Room) HandleOpen(playerId, row, col int) {
 		return
 	}
 
-	board1 := dto.ToBoardDto(r.match.GetPlayer1Board())
-	board2 := dto.ToBoardDto(r.match.GetPlayer2Board())
+	if result.IsGameOver {
+		board1 := dto.ToBoardDto(r.match.GetPlayer1Board())
+		board2 := dto.ToBoardDto(r.match.GetPlayer2Board())
 
-	message := protocol.Message{
-		Type:   protocol.Update,
-		Board1: board1,
-		Board2: board2,
+		message := protocol.Message{
+			Type:    protocol.GameOver,
+			Board1:  board1,
+			Board2:  board2,
+			Winner:  result.Winner,
+			Message: fmt.Sprintf("플레이어 %d가 %s 플레이어 %d 승리!", playerId, result.Message, result.Winner),
+		}
+		r.broadcastMessage(message)
+	} else {
+		board1 := dto.ToBoardDto(r.match.GetPlayer1Board())
+		board2 := dto.ToBoardDto(r.match.GetPlayer2Board())
+
+		message := protocol.Message{
+			Type:   protocol.Update,
+			Board1: board1,
+			Board2: board2,
+		}
+		r.broadcastMessage(message)
 	}
-	r.broadcastMessage(message)
 }
 
 func (r *Room) HandleFlag(playerId, row, col int) {

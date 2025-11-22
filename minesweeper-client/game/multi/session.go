@@ -104,6 +104,8 @@ func (c *Session) handleMessage(message protocol.Message) {
 		c.handleUpdate(message)
 	case protocol.Error:
 		c.handleError(message)
+	case protocol.GameOver:
+		c.handleGameOver(message)
 	}
 }
 
@@ -132,4 +134,21 @@ func (c *Session) handleUpdate(message protocol.Message) {
 func (c *Session) handleError(message protocol.Message) {
 	view.ShowErrorMessage(fmt.Errorf(message.Message))
 	view.AskCommand()
+}
+
+func (c *Session) handleGameOver(message protocol.Message) {
+	c.board1 = message.Board1
+	c.board2 = message.Board2
+	c.gameOver = true
+
+	view.ShowMultiBoards(c.board1, c.board2, c.playerId)
+	c.displayGameResult(message)
+}
+
+func (c *Session) displayGameResult(message protocol.Message) {
+	if message.Winner == c.playerId {
+		view.ShowWinMessage()
+	} else {
+		view.ShowLoseMessage()
+	}
 }

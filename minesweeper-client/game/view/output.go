@@ -95,16 +95,24 @@ func AskCommand() {
 	fmt.Println("\n명령어를 입력해주세요 (open x y / flag x y / exit)")
 }
 
-func ShowWinMessage() {
+func ShowCompletionMessage() {
 	fmt.Println("모든 지뢰를 찾았습니다! 🎉🎉")
 }
 
-func ShowLoseMessage() {
+func ShowHitMineMessage() {
 	fmt.Println("지뢰를 밟았습니다! 💣💣 게임 종료🥺")
 }
 
+func ShowWinMessage() {
+	fmt.Println("축하합니다! 승리하셨습니다!🎉🎉")
+}
+
+func ShowLoseMessage() {
+	fmt.Println("패배했습니다. 다음 기회에...")
+}
+
 func ShowRestartMessage() {
-	fmt.Println("\n새 난이도로 게임을 재시작하시겠습니까?")
+	fmt.Println("\n게임을 재시작하시겠습니까?")
 }
 
 func ShowQuitMessage() {

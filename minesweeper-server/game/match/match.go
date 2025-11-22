@@ -43,6 +43,26 @@ func (m *Match) Open(playerId int, position *position.CellPosition) (Result, err
 		return Result{IsGameOver: false}, err
 	}
 
+	if playerBoard.IsLoseStatus() {
+		m.status = Finished
+		m.winner = m.getOpponentId(playerId)
+		return Result{
+			IsGameOver: true,
+			Winner:     m.winner,
+			Message:    "지뢰를 밟았습니다.",
+		}, nil
+	}
+
+	if playerBoard.IsWinStatus() {
+		m.status = Finished
+		m.winner = playerId
+		return Result{
+			IsGameOver: true,
+			Winner:     m.winner,
+			Message:    "게임이 끝났습니다.",
+		}, nil
+	}
+
 	return Result{IsGameOver: false}, nil
 }
 
