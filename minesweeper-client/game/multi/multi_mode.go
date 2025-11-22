@@ -12,15 +12,58 @@ import (
 )
 
 type MultiMode struct {
-	session *Session
+	session              *Session
+	sessionEventChannels *SessionEventChannels
 }
 
 func NewMultiMode() *MultiMode {
-	client, err := NewSession("127.0.0.1:8080")
+	eventChannels := NewSessionEventChannels()
+
+	session, err := NewSession("127.0.0.1:8080", eventChannels)
 	if err != nil {
-		log.Fatal("서버 연결에 실패했습니다.", err)
+		log.Fatal("서버 연결 실패:", err)
 	}
-	return &MultiMode{session: client}
+
+	multiMode := &MultiMode{
+		session:              session,
+		sessionEventChannels: eventChannels,
+	}
+
+	go multiMode.listenSessionEvents()
+
+	return multiMode
+}
+
+func (m *MultiMode) listenSessionEvents() {
+	for {
+		select {
+
+		case e := <-m.sessionEventChannels.JoinedChan:
+			view.ShowPlayerJoined(e.PlayerId)
+			view.ShowOpponentWaitMessage()
+
+		case e := <-m.sessionEventChannels.StartChan:
+			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
+			view.AskCommand()
+
+		case e := <-m.sessionEventChannels.UpdateChan:
+			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
+			view.AskCommand()
+
+		case e := <-m.sessionEventChannels.ErrorChan:
+			view.ShowErrorMessage(e.Err)
+			view.AskCommand()
+
+		case e := <-m.sessionEventChannels.GameOverChan:
+			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
+
+			if e.Winner == e.PlayerId {
+				view.ShowWinMessage()
+			} else {
+				view.ShowLoseMessage()
+			}
+		}
+	}
 }
 
 func (m *MultiMode) Start() {
@@ -32,11 +75,7 @@ func (m *MultiMode) Start() {
 		return
 	}
 
-	view.ShowOpponentWaitMessage()
-
 	go m.session.StartReceiving()
-
-	<-m.session.joinDone
 
 	for {
 		action, cellPosition, err := m.readCommand()

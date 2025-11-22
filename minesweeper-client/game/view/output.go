@@ -18,6 +18,10 @@ func ShowGameModeSelection() {
 	fmt.Println("게임 모드를 선택하세요 (single / multi)")
 }
 
+func ShowPlayerJoined(playerId int) {
+	fmt.Printf("\nPlayer%d (으)로 참가했습니다.\n", playerId)
+}
+
 func ShowOpponentWaitMessage() {
 	fmt.Println("\n다른 플레이어를 기다리는 중...")
 }
