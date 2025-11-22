@@ -13,7 +13,7 @@ func ToCellSnapshotDto(snapshot cell.Snapshot) CellSnapshotDto {
 	status := snapshot.GetStatus()
 	number := snapshot.GetAdjacentLandMineCount()
 
-	if status == cell.LandMine && !snapshot.IsUnchecked() {
+	if status == cell.LandMine && snapshot.IsUnchecked() {
 		status = cell.Unchecked
 		number = 0
 	}
