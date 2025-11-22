@@ -6,7 +6,6 @@ import (
 	"minesweeper-infrastructure/network"
 	"minesweeper-infrastructure/protocol"
 	"net"
-	"os"
 	"sync"
 )
 
@@ -32,106 +31,113 @@ func NewSession(serverAddress string, eventChannels *SessionEventChannels) (*Ses
 	}, nil
 }
 
-func (c *Session) JoinGame() error {
-	return c.connection.Send(protocol.Message{Type: protocol.Join})
+func (s *Session) JoinGame() error {
+	return s.connection.Send(protocol.Message{Type: protocol.Join})
 }
 
-func (c *Session) Open(row, col int) error {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+func (s *Session) Open(row, col int) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
-	if c.gameOver {
+	if s.gameOver {
 		return nil
 	}
-	return c.connection.Send(protocol.Message{Type: protocol.Open, Row: row, Col: col})
+	return s.connection.Send(protocol.Message{
+		Type: protocol.Open,
+		Row:  row,
+		Col:  col,
+	})
 }
 
-func (c *Session) Flag(row, col int) error {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+func (s *Session) Flag(row, col int) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
-	if c.gameOver {
+	if s.gameOver {
 		return nil
 	}
-	return c.connection.Send(protocol.Message{Type: protocol.Flag, Row: row, Col: col})
+	return s.connection.Send(protocol.Message{
+		Type: protocol.Flag,
+		Row:  row,
+		Col:  col,
+	})
 }
 
-func (c *Session) StartReceiving() {
+func (s *Session) StartReceiving() {
 	for {
-		msg, err := c.connection.Receive()
+		message, err := s.connection.Receive()
 		if err != nil {
-			fmt.Println("\n서버 연결이 끊어졌습니다.")
-			os.Exit(0)
+			return
 		}
-		c.handleMessage(msg)
+		s.handleMessage(message)
 	}
 }
 
-func (c *Session) handleMessage(message protocol.Message) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+func (s *Session) handleMessage(message protocol.Message) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
 	switch message.Type {
 	case protocol.Joined:
-		c.handleJoined(message)
+		s.handleJoined(message)
 	case protocol.Start:
-		c.handleStart(message)
+		s.handleStart(message)
 	case protocol.Update:
-		c.handleUpdate(message)
+		s.handleUpdate(message)
 	case protocol.Error:
-		c.handleError(message)
+		s.handleError(message)
 	case protocol.GameOver:
-		c.handleGameOver(message)
+		s.handleGameOver(message)
 	}
 }
 
-func (c *Session) handleJoined(message protocol.Message) {
-	c.playerId = message.PlayerId
-	c.eventChannels.JoinedChan <- JoinedEvent{PlayerId: c.playerId}
+func (s *Session) handleJoined(message protocol.Message) {
+	s.playerId = message.PlayerId
+	s.eventChannels.JoinedChan <- JoinedEvent{PlayerId: s.playerId}
 }
 
-func (c *Session) handleStart(message protocol.Message) {
-	c.board1 = message.Board1
-	c.board2 = message.Board2
-	c.gameOver = false
+func (s *Session) handleStart(message protocol.Message) {
+	s.board1 = message.Board1
+	s.board2 = message.Board2
+	s.gameOver = false
 
-	c.eventChannels.StartChan <- StartEvent{
-		Board1:   c.board1,
-		Board2:   c.board2,
-		PlayerId: c.playerId,
+	s.eventChannels.StartChan <- StartEvent{
+		Board1:   s.board1,
+		Board2:   s.board2,
+		PlayerId: s.playerId,
 	}
 }
 
-func (c *Session) handleUpdate(message protocol.Message) {
-	c.board1 = message.Board1
-	c.board2 = message.Board2
+func (s *Session) handleUpdate(message protocol.Message) {
+	s.board1 = message.Board1
+	s.board2 = message.Board2
 
-	c.eventChannels.UpdateChan <- UpdateEvent{
-		Board1:   c.board1,
-		Board2:   c.board2,
-		PlayerId: c.playerId,
+	s.eventChannels.UpdateChan <- UpdateEvent{
+		Board1:   s.board1,
+		Board2:   s.board2,
+		PlayerId: s.playerId,
 	}
 }
 
-func (c *Session) handleError(message protocol.Message) {
-	c.eventChannels.ErrorChan <- ErrorEvent{
+func (s *Session) handleError(message protocol.Message) {
+	s.eventChannels.ErrorChan <- ErrorEvent{
 		Err: fmt.Errorf(message.Message),
 	}
 }
 
-func (c *Session) handleGameOver(message protocol.Message) {
-	c.board1 = message.Board1
-	c.board2 = message.Board2
-	c.gameOver = true
+func (s *Session) handleGameOver(message protocol.Message) {
+	s.board1 = message.Board1
+	s.board2 = message.Board2
+	s.gameOver = true
 
-	c.eventChannels.GameOverChan <- GameOverEvent{
-		Board1:   c.board1,
-		Board2:   c.board2,
-		PlayerId: c.playerId,
+	s.eventChannels.GameOverChan <- GameOverEvent{
+		Board1:   s.board1,
+		Board2:   s.board2,
+		PlayerId: s.playerId,
 		Winner:   message.Winner,
 	}
 }
 
-func (c *Session) Close() error {
-	return c.connection.Close()
+func (s *Session) Close() error {
+	return s.connection.Close()
 }
