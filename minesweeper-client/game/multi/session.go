@@ -63,6 +63,13 @@ func (s *Session) Flag(row, col int) error {
 	})
 }
 
+func (s *Session) Exit() error {
+	return s.connection.Send(protocol.Message{
+		Type:     protocol.Exit,
+		PlayerId: s.playerId,
+	})
+}
+
 func (s *Session) StartReceiving() {
 	for {
 		message, err := s.connection.Receive()
@@ -93,7 +100,10 @@ func (s *Session) handleMessage(message protocol.Message) {
 
 func (s *Session) handleJoined(message protocol.Message) {
 	s.playerId = message.PlayerId
-	s.eventChannels.JoinedChan <- JoinedEvent{PlayerId: s.playerId}
+	s.eventChannels.JoinedChan <- JoinedEvent{
+		PlayerId: s.playerId,
+		Message:  message.Message,
+	}
 }
 
 func (s *Session) handleStart(message protocol.Message) {

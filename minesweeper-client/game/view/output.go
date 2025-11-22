@@ -53,6 +53,10 @@ func ShowBoard(board *board.Board) {
 }
 
 func ShowMultiBoards(board1Dto, board2Dto dto.BoardDto, playerId int) {
+	if len(board1Dto) == 0 || len(board1Dto[0]) == 0 {
+		return
+	}
+
 	fmt.Printf("\n       내 게임판 (Player%d)"+
 		"               상대방 게임판 (Player%d)\n", playerId, 3-playerId)
 	rows := len(board1Dto)

@@ -82,6 +82,9 @@ func handleMessage(
 		if *gameRoom != nil {
 			(*gameRoom).HandleFlag(conn, message.Row, message.Col)
 		}
+
+	case protocol.Exit:
+		clientDisconnect(*gameRoom, conn, matchMaker)
 	}
 }
 

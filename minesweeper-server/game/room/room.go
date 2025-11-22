@@ -166,9 +166,12 @@ func (r *Room) HandleDisconnect(conn *network.Connection) {
 	otherPlayerIndex := winner - 1
 	if otherPlayerIndex >= 0 && otherPlayerIndex < len(r.players) && r.players[otherPlayerIndex] != nil {
 		message := protocol.Message{
-			Type:    protocol.GameOver,
-			Winner:  winner,
-			Message: fmt.Sprintf("상대방이 연결을 끊었습니다. 당신이 승리했습니다!"),
+			Type:     protocol.GameOver,
+			PlayerId: winner,
+			Winner:   winner,
+			Board1:   dto.BoardDto{},
+			Board2:   dto.BoardDto{},
+			Message:  fmt.Sprintf("상대방이 연결을 끊었습니다. 당신이 승리했습니다!"),
 		}
 
 		err := r.players[otherPlayerIndex].Send(message)
