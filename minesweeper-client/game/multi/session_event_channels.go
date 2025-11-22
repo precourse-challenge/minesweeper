@@ -10,10 +10,10 @@ type SessionEventChannels struct {
 
 func NewSessionEventChannels() *SessionEventChannels {
 	return &SessionEventChannels{
-		StartChan:    make(chan StartEvent),
-		UpdateChan:   make(chan UpdateEvent),
-		ErrorChan:    make(chan ErrorEvent),
-		GameOverChan: make(chan GameOverEvent),
-		JoinedChan:   make(chan JoinedEvent),
+		StartChan:    make(chan StartEvent, 5),
+		UpdateChan:   make(chan UpdateEvent, 5),
+		ErrorChan:    make(chan ErrorEvent, 5),
+		GameOverChan: make(chan GameOverEvent, 5),
+		JoinedChan:   make(chan JoinedEvent, 5),
 	}
 }
