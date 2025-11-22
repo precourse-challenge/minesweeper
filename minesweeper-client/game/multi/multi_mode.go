@@ -59,15 +59,18 @@ func (m *MultiMode) handleSessionEvents() {
 		case e := <-m.sessionEventChannels.StartChan:
 			fmt.Println(e.Message)
 			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
+			view.AskCommand()
 			m.signalInputReady()
 
 		case e := <-m.sessionEventChannels.UpdateChan:
 			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
+			view.AskCommand()
 			m.signalInputReady()
 
 		case e := <-m.sessionEventChannels.ErrorChan:
 			fmt.Println(e.Message)
 			view.ShowErrorMessage(e.Err)
+			view.AskCommand()
 			m.signalInputReady()
 
 		case e := <-m.sessionEventChannels.GameOverChan:
@@ -104,7 +107,6 @@ func (m *MultiMode) runInputLoop() {
 }
 
 func (m *MultiMode) processUserInput() bool {
-	view.AskCommand()
 	action, cellPosition, err := m.readCommand()
 	if err != nil {
 		view.ShowErrorMessage(err)
