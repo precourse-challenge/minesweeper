@@ -79,19 +79,21 @@ func (r *Room) HandleOpen(conn *network.Connection, row, col int) {
 
 	playerId, err := r.getValidPlayerId(conn)
 	if err != nil {
-		log.Println(err)
+		log.Printf("[Room %s][Open] 유효하지 않은 플레이어 요청 - %v\n", r.id, err)
 		return
 	}
 
 	cellPosition, err := position.NewCellPosition(row, col)
 	if err != nil {
 		r.sendError(conn, err.Error())
+		log.Printf("[Room %s][Open] 잘못된 좌표 입력 - player %d, row=%d col=%d\n", r.id, playerId, row, col)
 		return
 	}
 
 	result, err := r.match.Open(playerId, cellPosition)
 	if err != nil {
 		r.sendError(conn, err.Error())
+		log.Printf("[Room %s][Open] Open 실패 - player %d,  %v\n", r.id, playerId, err)
 		return
 	}
 
@@ -106,6 +108,7 @@ func (r *Room) HandleOpen(conn *network.Connection, row, col int) {
 			Winner:  result.Winner,
 			Message: fmt.Sprintf("플레이어 %d가 %s 플레이어 %d 승리!", playerId, result.Message, result.Winner),
 		}
+		log.Printf("[Room %s][Open] 게임 종료 %s\n", r.id, result.Message)
 		r.broadcastMessage(message)
 	} else {
 		message := protocol.Message{
@@ -113,6 +116,7 @@ func (r *Room) HandleOpen(conn *network.Connection, row, col int) {
 			Board1: board1,
 			Board2: board2,
 		}
+		log.Printf("[Room %s][Open] 상태 업데이트 브로드캐스트 - player %d\n", r.id, playerId)
 		r.broadcastMessage(message)
 	}
 }
@@ -123,19 +127,21 @@ func (r *Room) HandleFlag(conn *network.Connection, row, col int) {
 
 	playerId, err := r.getValidPlayerId(conn)
 	if err != nil {
-		log.Println(err)
+		log.Printf("[Room %s][Flag] 유효하지 않은 플레이어 요청 - %v\n", r.id, err)
 		return
 	}
 
 	cellPosition, err := position.NewCellPosition(row, col)
 	if err != nil {
 		r.sendError(conn, err.Error())
+		log.Printf("[Room %s][Flag] 잘못된 좌표 입력 - player %d, row=%d col=%d\n", r.id, playerId, row, col)
 		return
 	}
 
 	err = r.match.Flag(playerId, cellPosition)
 	if err != nil {
 		r.sendError(conn, err.Error())
+		log.Printf("[Room %s][Flag] Flag 실패 - player %d,  %v\n", r.id, playerId, err)
 		return
 	}
 
@@ -147,6 +153,7 @@ func (r *Room) HandleFlag(conn *network.Connection, row, col int) {
 		Board1: board1,
 		Board2: board2,
 	}
+	log.Printf("[Room %s][Flag] 상태 업데이트 브로드캐스트 - player %d\n", r.id, playerId)
 	r.broadcastMessage(message)
 }
 
@@ -156,7 +163,7 @@ func (r *Room) HandleDisconnect(conn *network.Connection) {
 
 	playerId, err := r.getValidPlayerId(conn)
 	if err != nil {
-		log.Println(err)
+		log.Printf("[Room %s][Disconnect] 유효하지 않은 플레이어 요청 - %v\n", r.id, err)
 		r.cleanup()
 		return
 	}
@@ -174,9 +181,10 @@ func (r *Room) HandleDisconnect(conn *network.Connection) {
 			Message:  fmt.Sprintf("상대방이 연결을 끊었습니다. 당신이 승리했습니다!"),
 		}
 
+		log.Printf("[Room %s][Disconnect] player %d 연결 끊김 - winner=%d\n", r.id, playerId, winner)
 		err := r.players[otherPlayerIndex].Send(message)
 		if err != nil {
-			log.Println("상대 플레이어에게 종료 메시지 전송을 실패했습니다.", err)
+			log.Printf("[Room %s][Disconnect] 상대에게 GameOver 메시지 전송 실패 - %v\n", r.id, err)
 		}
 	}
 
@@ -191,7 +199,7 @@ func (r *Room) sendError(conn *network.Connection, errorMessage string) {
 
 	err := conn.Send(message)
 	if err != nil {
-		log.Println("에러 메시지 전송을 실패했습니다.", err)
+		log.Printf("[Room %s][sendError] 에러 메시지 전송 실패 - %v\n", r.id, err)
 	}
 }
 
@@ -224,7 +232,7 @@ func (r *Room) broadcastMessage(message protocol.Message) {
 			messageCopy.PlayerId = i + 1
 			err := player.Send(messageCopy)
 			if err != nil {
-				log.Printf("플레이어 %d에게 메시지 전송을 실패했습니다. %v", i+1, err)
+				log.Printf("[Room %s][broadcast] 플레이어 %d에게 메시지 전송 실패 - %v\n", r.id, i+1, err)
 			}
 		}
 	}
@@ -235,7 +243,9 @@ func (r *Room) cleanup() {
 		if player != nil {
 			err := player.Close()
 			if err != nil {
-				log.Printf("플레이어 %d 연결 종료에 실패했습니다. %v", i+1, err)
+				log.Printf("[Room %s][cleanup] 플레이어 %d 연결 종료 실패 - %v\n", r.id, i+1, err)
+			} else {
+				log.Printf("[Room %s][cleanup] 플레이어 %d 연결 종료\n", r.id, i+1)
 			}
 		}
 	}
