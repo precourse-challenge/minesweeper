@@ -44,6 +44,10 @@ func (board *Board) InitializeGame() {
 }
 
 func (board *Board) Flag(cellPosition *position.CellPosition) error {
+	if board.IsOutOfBounds(cellPosition) {
+		return fmt.Errorf("유효하지 않은 셀 범위입니다")
+	}
+
 	if board.isOpenedCell(cellPosition) {
 		return fmt.Errorf("열려있는 셀에 깃발을 꽂을 수 없습니다")
 	}
@@ -64,6 +68,10 @@ func (board *Board) Flag(cellPosition *position.CellPosition) error {
 }
 
 func (board *Board) Open(cellPosition *position.CellPosition) error {
+	if board.IsOutOfBounds(cellPosition) {
+		return fmt.Errorf("유효하지 않은 셀 범위입니다")
+	}
+
 	if board.isOpenedCell(cellPosition) {
 		return fmt.Errorf("이미 열려있는 셀 입니다")
 	}
