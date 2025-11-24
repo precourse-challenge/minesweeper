@@ -10,10 +10,15 @@ import (
 	"strings"
 )
 
+type InputEvent struct {
+	Command string
+	Err     error
+}
+
 type MultiMode struct {
 	session              *Session
 	sessionEventChannels *SessionEventChannels
-	inputReady           chan struct{}
+	inputCommandChan     chan InputEvent
 	done                 chan struct{}
 }
 
@@ -28,7 +33,7 @@ func NewMultiMode() *MultiMode {
 	return &MultiMode{
 		session:              session,
 		sessionEventChannels: eventChannels,
-		inputReady:           make(chan struct{}, 5),
+		inputCommandChan:     make(chan InputEvent, 5),
 		done:                 make(chan struct{}),
 	}
 }
@@ -42,8 +47,22 @@ func (m *MultiMode) Start() {
 
 	go m.session.StartReceiving()
 	go m.handleSessionEvents()
+	go m.inputReader()
 
-	m.runInputLoop()
+	m.mainLoop()
+}
+
+func (m *MultiMode) inputReader() {
+	for {
+		select {
+
+		case <-m.done:
+			return
+		default:
+			inputCommand := view.Read()
+			m.inputCommandChan <- InputEvent{Command: inputCommand}
+		}
+	}
 }
 
 func (m *MultiMode) handleSessionEvents() {
@@ -57,24 +76,18 @@ func (m *MultiMode) handleSessionEvents() {
 			view.ShowOpponentWaitMessage()
 
 		case e := <-m.sessionEventChannels.StartChan:
-			fmt.Println(e.Message)
 			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
 			view.AskCommand()
-			m.signalInputReady()
 
 		case e := <-m.sessionEventChannels.UpdateChan:
 			view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
 			view.AskCommand()
-			m.signalInputReady()
 
 		case e := <-m.sessionEventChannels.ErrorChan:
-			fmt.Println(e.Message)
 			view.ShowErrorMessage(e.Err)
 			view.AskCommand()
-			m.signalInputReady()
 
 		case e := <-m.sessionEventChannels.GameOverChan:
-			fmt.Println(e.Message)
 			m.displayGameOver(e)
 			m.closeConnection(m.session)
 			return
@@ -82,35 +95,28 @@ func (m *MultiMode) handleSessionEvents() {
 	}
 }
 
-func (m *MultiMode) displayGameOver(e GameOverEvent) {
-	view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
-
-	if e.Winner == e.PlayerId {
-		view.ShowWinMessage()
-	} else {
-		view.ShowLoseMessage()
-	}
-}
-
-func (m *MultiMode) runInputLoop() {
+func (m *MultiMode) mainLoop() {
 	for {
 		select {
-		case <-m.inputReady:
-			exit := m.processUserInput()
+
+		case inputEvent := <-m.inputCommandChan:
+			exit := m.processUserInput(inputEvent.Command)
 			if exit {
+				close(m.done)
 				return
 			}
+
 		case <-m.done:
 			return
 		}
 	}
 }
 
-func (m *MultiMode) processUserInput() bool {
-	action, cellPosition, err := m.readCommand()
+func (m *MultiMode) processUserInput(inputCommand string) bool {
+	action, cellPosition, err := m.parseCommand(inputCommand)
 	if err != nil {
 		view.ShowErrorMessage(err)
-		m.signalInputReady()
+		view.AskCommand()
 		return false
 	}
 
@@ -126,20 +132,19 @@ func (m *MultiMode) processUserInput() bool {
 	err = m.handleActionOnCell(action, cellPosition)
 	if err != nil {
 		view.ShowErrorMessage(err)
-		m.signalInputReady()
 	}
 
 	return false
 }
 
-func (m *MultiMode) readCommand() (user.Action, *position.CellPosition, error) {
-	inputCommand := view.Read()
+func (m *MultiMode) displayGameOver(e GameOverEvent) {
+	view.ShowMultiBoards(e.Board1, e.Board2, e.PlayerId)
 
-	action, cellPosition, err := m.parseCommand(inputCommand)
-	if err != nil {
-		return user.UnknownAction, nil, err
+	if e.Winner == e.PlayerId {
+		view.ShowWinMessage()
+	} else {
+		view.ShowLoseMessage()
 	}
-	return action, cellPosition, nil
 }
 
 func (m *MultiMode) parseCommand(inputCommand string) (user.Action, *position.CellPosition, error) {
@@ -189,21 +194,14 @@ func (m *MultiMode) parseCoordinate(input string) (int, error) {
 	return coordinate - 1, nil
 }
 
-func (m *MultiMode) handleActionOnCell(action user.Action, pos *position.CellPosition) error {
+func (m *MultiMode) handleActionOnCell(action user.Action, position *position.CellPosition) error {
 	switch action {
 	case user.Open:
-		return m.session.Open(pos.RowIndex(), pos.ColIndex())
+		return m.session.Open(position.RowIndex(), position.ColIndex())
 	case user.Flag:
-		return m.session.Flag(pos.RowIndex(), pos.ColIndex())
+		return m.session.Flag(position.RowIndex(), position.ColIndex())
 	default:
 		return fmt.Errorf("잘못된 명령어입니다")
-	}
-}
-
-func (m *MultiMode) signalInputReady() {
-	select {
-	case m.inputReady <- struct{}{}:
-	default:
 	}
 }
 

@@ -119,8 +119,12 @@ func ShowLoseMessage() {
 	fmt.Println("패배했습니다. 다음 기회에...")
 }
 
+func ShowGameOverPause() {
+	fmt.Println("게임이 종료되었습니다. 계속하려면 엔터를 두 번 눌러주세요...")
+}
+
 func ShowRestartMessage() {
-	fmt.Println("\n게임을 재시작하시겠습니까?")
+	fmt.Println("\n게임을 재시작하시겠습니까? (retry / exit)")
 }
 
 func ShowQuitMessage() {

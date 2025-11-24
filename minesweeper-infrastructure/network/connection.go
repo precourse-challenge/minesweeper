@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"minesweeper-infrastructure/protocol"
 	"net"
+	"sync"
 )
 
 type Connection struct {
 	Conn    net.Conn
 	decoder *json.Decoder
 	encoder *json.Encoder
+	mutex   sync.Mutex
 }
 
 func NewConnection(conn net.Conn) *Connection {
@@ -27,6 +29,8 @@ func (c *Connection) Receive() (protocol.Message, error) {
 }
 
 func (c *Connection) Send(message protocol.Message) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	return c.encoder.Encode(message)
 }
 

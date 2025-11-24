@@ -20,6 +20,8 @@ func StartGameClient() {
 			runSingleMode()
 		case user.Multi:
 			runMultiMode()
+			view.ShowGameOverPause()
+			view.Read()
 		}
 
 		userAction := readNextAction()

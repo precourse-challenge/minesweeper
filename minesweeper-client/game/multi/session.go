@@ -36,9 +36,6 @@ func (s *Session) JoinGame() error {
 }
 
 func (s *Session) Open(row, col int) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
 	if s.gameOver {
 		return nil
 	}
@@ -50,9 +47,6 @@ func (s *Session) Open(row, col int) error {
 }
 
 func (s *Session) Flag(row, col int) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
 	if s.gameOver {
 		return nil
 	}
